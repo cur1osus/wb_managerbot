@@ -8,7 +8,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.handlers.accounts import show_bots
 from bot.keyboards.factories import BackFactory
+from bot.keyboards.inline import ik_admin_panel
 from bot.states import AccountState
+from bot.utils import fn
 
 if TYPE_CHECKING:
     from aiogram.fsm.context import FSMContext
@@ -20,8 +22,22 @@ router = Router()
 logger = logging.getLogger(__name__)
 
 
-@router.callback_query(AccountState.actions, BackFactory.filter(F.to == "accounts"))
+@router.callback_query(BackFactory.filter(F.to == "default"))
 async def back_default(
+    query: CallbackQuery,
+    session: AsyncSession,
+    state: FSMContext,
+    user: UserDB,
+) -> None:
+    await fn.state_clear(state)
+    await query.message.edit_text(
+        text="Главный экран",
+        reply_markup=await ik_admin_panel(),
+    )
+
+
+@router.callback_query(AccountState.actions, BackFactory.filter(F.to == "accounts"))
+async def back_accounts(
     query: CallbackQuery,
     session: AsyncSession,
     state: FSMContext,
