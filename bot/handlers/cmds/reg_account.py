@@ -12,6 +12,7 @@ from aiogram.types.reply_keyboard_remove import ReplyKeyboardRemove
 from sqlalchemy import select
 
 from bot.db.models import Account, UserDB
+from bot.keyboards.inline import ik_admin_panel
 from bot.keyboards.reply import rk_cancel
 from bot.settings import se
 from bot.states import UserAdminState
@@ -170,3 +171,7 @@ async def enter_code(
     await fn.state_clear(state)
 
     await message.answer("Бот подключен и запущен", reply_markup=ReplyKeyboardRemove())
+    await message.answer(
+        text="Главное меню",
+        reply_markup=await ik_admin_panel(),
+    )

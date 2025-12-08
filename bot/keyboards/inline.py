@@ -25,7 +25,7 @@ async def ik_available_accounts(
     builder = InlineKeyboardBuilder()
     for account in accounts:
         builder.button(
-            text=f"{'❇️' if account.is_connected else '⛔️'} {account.phone} ({account.name or '?'})",
+            text=f"{'❇️' if account.is_connected else '⛔️'}{'🟢' if account.is_started else '🔴'} {account.phone} ({account.name or '?'})",
             callback_data=AccountFactory(id=account.id),
         )
     builder.button(text=BACK_BUTTON_TEXT, callback_data=BackFactory(to=back_to))
