@@ -111,6 +111,7 @@ async def enter_code(
     message: Message,
     state: FSMContext,
     session: AsyncSession,
+    user: UserDB,
 ) -> None:
     if not message.text:
         return
@@ -162,6 +163,7 @@ async def enter_code(
         phone=phone,
         path_session=path_session,
         is_connected=True,
+        user_id=user.id,
     )
     session.add(a)
     await session.commit()

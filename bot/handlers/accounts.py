@@ -16,6 +16,7 @@ from bot.utils import fn
 if TYPE_CHECKING:
     from aiogram.types import CallbackQuery
     from sqlalchemy.ext.asyncio import AsyncSession
+    from bot.db.models import UserDB
 
 router = Router()
 logger = logging.getLogger(__name__)
@@ -25,8 +26,17 @@ logger = logging.getLogger(__name__)
 async def show_bots(
     query: CallbackQuery,
     session: AsyncSession,
+    user: UserDB | None,
 ) -> None:
-    accounts = (await session.scalars(select(Account))).all()
+    if not user or not user.is_admin:
+        await query.answer(text="Недостаточно прав", show_alert=True)
+        return
+
+    accounts = (
+        await session.scalars(
+            select(Account).where(Account.user_id == user.id)
+        )
+    ).all()
     if not accounts:
         await query.message.edit_text(
             text="Аккаунтов еще нет", reply_markup=await ik_back()

@@ -43,4 +43,4 @@ async def back_accounts(
     state: FSMContext,
     user: UserDB,
 ) -> None:
-    await show_bots(query, session)
+    await show_bots(query, session, user)

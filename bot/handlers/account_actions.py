@@ -25,6 +25,7 @@ if TYPE_CHECKING:
     from aiogram.fsm.context import FSMContext
     from aiogram.types import CallbackQuery
     from sqlalchemy.ext.asyncio import AsyncSession
+    from bot.db.models import UserDB
 
 router = Router()
 logger = logging.getLogger(__name__)
@@ -41,6 +42,7 @@ async def _account_from_state(
     state: FSMContext,
     session: AsyncSession,
     notify: Notifier,
+    user: UserDB | None,
 ) -> Account | None:
     data = await state.get_data()
     account_id: int | None = data.get("account_id")
@@ -51,6 +53,9 @@ async def _account_from_state(
     account = await session.get(Account, account_id)
     if not account:
         await notify("Ошибка: account не найден в базе данных")
+        return None
+    if user and account.user_id and account.user_id != user.id:
+        await notify("Аккаунт не найден для текущего пользователя")
         return None
 
     return account
@@ -117,9 +122,19 @@ async def manage_account(
     callback_data: AccountFactory,
     state: FSMContext,
     session: AsyncSession,
+    user: UserDB,
 ) -> None:
+    if not user.is_admin:
+        await query.answer(text="Недостаточно прав", show_alert=True)
+        return
+
     account_id = callback_data.id
-    account = await session.get(Account, account_id)
+    account = await session.scalar(
+        select(Account).where(
+            Account.id == account_id,
+            Account.user_id == user.id,
+        )
+    )
     if not account:
         await query.answer(text="Аккаунт не найден", show_alert=True)
         return
@@ -139,8 +154,9 @@ async def connect_account(
     query: CallbackQuery,
     state: FSMContext,
     session: AsyncSession,
+    user: UserDB,
 ) -> None:
-    account = await _account_from_state(state, session, _alert(query))
+    account = await _account_from_state(state, session, _alert(query), user)
     if not account:
         return
 
@@ -195,8 +211,9 @@ async def disconnected_account(
     query: CallbackQuery,
     state: FSMContext,
     session: AsyncSession,
+    user: UserDB,
 ) -> None:
-    account = await _account_from_state(state, session, _alert(query))
+    account = await _account_from_state(state, session, _alert(query), user)
     if not account:
         return
 
@@ -216,8 +233,9 @@ async def delete_account(
     query: CallbackQuery,
     state: FSMContext,
     session: AsyncSession,
+    user: UserDB,
 ) -> None:
-    account = await _account_from_state(state, session, _alert(query))
+    account = await _account_from_state(state, session, _alert(query), user)
     if not account:
         return
 
@@ -235,8 +253,9 @@ async def start_account(
     query: CallbackQuery,
     state: FSMContext,
     session: AsyncSession,
+    user: UserDB,
 ) -> None:
-    account = await _account_from_state(state, session, _alert(query))
+    account = await _account_from_state(state, session, _alert(query), user)
     if not account:
         return
 
@@ -254,8 +273,9 @@ async def stop_account(
     query: CallbackQuery,
     state: FSMContext,
     session: AsyncSession,
+    user: UserDB,
 ) -> None:
-    account = await _account_from_state(state, session, _alert(query))
+    account = await _account_from_state(state, session, _alert(query), user)
     if not account:
         return
 
@@ -274,8 +294,9 @@ async def history_usernames(
     callback_data: HistoryFactory,
     state: FSMContext,
     session: AsyncSession,
+    user: UserDB,
 ) -> None:
-    account = await _account_from_state(state, session, _alert(query))
+    account = await _account_from_state(state, session, _alert(query), user)
     if not account:
         return
 
@@ -309,8 +330,9 @@ async def history_back_to_actions(
     query: CallbackQuery,
     state: FSMContext,
     session: AsyncSession,
+    user: UserDB,
 ) -> None:
-    account = await _account_from_state(state, session, _alert(query))
+    account = await _account_from_state(state, session, _alert(query), user)
     if not account:
         return
 
@@ -325,8 +347,9 @@ async def load_nicks_account(
     query: CallbackQuery,
     state: FSMContext,
     session: AsyncSession,
+    user: UserDB,
 ) -> None:
-    account = await _account_from_state(state, session, _alert(query))
+    account = await _account_from_state(state, session, _alert(query), user)
     if not account:
         return
 
@@ -344,6 +367,7 @@ async def load_nicks_account(
 async def cancel_load_nicks(
     query: CallbackQuery,
     state: FSMContext,
+    user: UserDB,
 ) -> None:
     await query.message.edit_text(
         text="Загрузка никнеймов отменена",
@@ -357,8 +381,14 @@ async def catch_load_nicks(
     message: Message,
     state: FSMContext,
     session: AsyncSession,
+    user: UserDB,
 ) -> None:
-    account = await _account_from_state(state, session, partial(message.answer))
+    account = await _account_from_state(
+        state,
+        session,
+        partial(message.answer),
+        user,
+    )
     if not account:
         return
 
@@ -396,8 +426,9 @@ async def reset_nicks_account(
     query: CallbackQuery,
     state: FSMContext,
     session: AsyncSession,
+    user: UserDB,
 ) -> None:
-    account = await _account_from_state(state, session, _alert(query))
+    account = await _account_from_state(state, session, _alert(query), user)
     if not account:
         return
 
