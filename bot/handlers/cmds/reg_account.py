@@ -11,7 +11,7 @@ from aiogram.fsm.state import any_state
 from aiogram.types.reply_keyboard_remove import ReplyKeyboardRemove
 from sqlalchemy import select
 
-from bot.db.models import UserDB
+from bot.db.models import Account, UserDB
 from bot.keyboards.reply import rk_cancel
 from bot.settings import se
 from bot.states import UserAdminState
