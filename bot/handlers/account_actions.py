@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 router = Router()
 logger = logging.getLogger(__name__)
 Notifier = Callable[[str], Awaitable[None]]
-HISTORY_PAGE_SIZE: Final[int] = 15
+HISTORY_PAGE_SIZE: Final[int] = 10
 MAX_TG_MESSAGE_LENGTH: Final[int] = 4096
 
 
@@ -61,7 +61,7 @@ def _format_username_item(username: Username) -> str:
     if mention and not mention.startswith("@"):
         mention = f"@{mention}"
 
-    status = "✅ отправлено" if username.sended else "⏳ в очереди"
+    status = "✅" if username.sended else "⏳"
     item = f" — {username.item_name}" if username.item_name else ""
     return f"{mention}{item} ({status})"
 
@@ -272,8 +272,10 @@ async def history_usernames(
     if not account:
         return
 
-    total_stmt = select(func.count()).select_from(Username).where(
-        Username.account_id == account.id
+    total_stmt = (
+        select(func.count())
+        .select_from(Username)
+        .where(Username.account_id == account.id)
     )
     total = (await session.execute(total_stmt)).scalar_one()
     total_pages = max(1, (total + HISTORY_PAGE_SIZE - 1) // HISTORY_PAGE_SIZE)
