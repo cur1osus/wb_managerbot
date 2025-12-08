@@ -274,6 +274,7 @@ async def catch_load_nicks(
         await message.answer(
             text=f"Не были распознаны эти строки:\n\n{'\n'.join(line_not_handled)}"
         )
+    await state.set_state(AccountState.actions)
     await message.answer(
         text="Действия с аккаунтом",
         reply_markup=await ik_action_with_account(),
