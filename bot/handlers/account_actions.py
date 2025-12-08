@@ -95,12 +95,19 @@ def _history_text(
 
 def _history_keyboard(page: int, total_pages: int) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
+    adjust = []
     if total_pages > 1 and page > 1:
         builder.button(text="⬅️", callback_data=HistoryFactory(page=page - 1))
-    builder.button(text="🔙 К действиям", callback_data="history_back")
+        adjust.append(1)
     if total_pages > 1 and page < total_pages:
         builder.button(text="➡️", callback_data=HistoryFactory(page=page + 1))
-    builder.adjust(3 if total_pages > 1 else 1)
+        if adjust:
+            adjust[0] += 1
+        else:
+            adjust.append(1)
+    builder.button(text="🔙 К действиям", callback_data="history_back")
+    adjust.append(1)
+    builder.adjust(*adjust)
     return builder.as_markup()
 
 
