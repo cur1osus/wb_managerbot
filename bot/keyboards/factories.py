@@ -11,3 +11,7 @@ class AccountFactory(CallbackData, prefix="c"):
 
 class CancelFactory(CallbackData, prefix="cn"):
     to: str
+
+
+class HistoryFactory(CallbackData, prefix="hst"):
+    page: int

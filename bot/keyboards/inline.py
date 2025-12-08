@@ -4,7 +4,12 @@ from aiogram.types import InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from bot.db.models import Account
-from bot.keyboards.factories import AccountFactory, BackFactory, CancelFactory
+from bot.keyboards.factories import (
+    AccountFactory,
+    BackFactory,
+    CancelFactory,
+    HistoryFactory,
+)
 
 LIMIT_BUTTONS: Final[int] = 100
 BACK_BUTTON_TEXT = "🔙"
@@ -47,8 +52,12 @@ async def ik_action_with_account(back_to: str = "accounts") -> InlineKeyboardMar
     builder.button(text="🔴 Стоп", callback_data="stop_account")
     builder.button(text="🚮 Сбросить ники", callback_data="reset_nicks_account")
     builder.button(text="🌀 Загрузить ники", callback_data="load_nicks_account")
+    builder.button(
+        text="📜 История отправок",
+        callback_data=HistoryFactory(page=1),
+    )
     builder.button(text=BACK_BUTTON_TEXT, callback_data=BackFactory(to=back_to))
-    builder.adjust(1, 2, 1, 1, 1)
+    builder.adjust(1, 2, 1, 1, 1, 1)
     return builder.as_markup()
 
 
