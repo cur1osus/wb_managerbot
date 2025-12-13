@@ -20,6 +20,7 @@ from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from bot import handlers
+from bot import background_tasks
 from bot.db.base import close_db, create_db_session_pool, init_db
 from bot.middlewares.throw_session import ThrowDBSessionMiddleware
 from bot.middlewares.throw_user_model import ThrowUserMiddleware
@@ -41,12 +42,11 @@ async def start_scheduler(
     redis: Redis,
     bot: Bot,
 ) -> None:
-    # scheduler.every(2).seconds.do(
-    #     send_posts,
-    #     sessionmaker=sessionmaker,
-    #     redis=redis,
-    #     bot=bot,
-    # )
+    scheduler.every(5).seconds.do(
+        background_tasks.send_job_answers,
+        sessionmaker=sessionmaker,
+        bot=bot,
+    )
     while True:
         await scheduler.run_pending()
         await asyncio.sleep(1)

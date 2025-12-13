@@ -15,3 +15,7 @@ class CancelFactory(CallbackData, prefix="cn"):
 
 class HistoryFactory(CallbackData, prefix="hst"):
     page: int
+
+
+class BatchSizeFactory(CallbackData, prefix="bs"):
+    value: int
