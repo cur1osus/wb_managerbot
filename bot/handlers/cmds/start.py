@@ -5,9 +5,10 @@ from typing import TYPE_CHECKING
 
 from aiogram import Router
 from aiogram.filters import CommandObject, CommandStart
+from sqlalchemy import select
 
-from bot.db.models import UserDB
-from bot.keyboards.inline import ik_admin_panel
+from bot.db.models import AccountFolder, UserDB
+from bot.keyboards.inline import ik_folder_list
 from bot.utils import fn
 
 if TYPE_CHECKING:
@@ -59,9 +60,17 @@ async def start_cmd(
         await session.commit()
 
     if user.is_admin:
+        await fn.state_clear(state)
+        folders = (
+            await session.scalars(
+                select(AccountFolder)
+                .where(AccountFolder.user_id == user.id)
+                .order_by(AccountFolder.name)
+            )
+        ).all()
         msg = await message.answer(
-            "Привет, админ!",
-            reply_markup=await ik_admin_panel(),
+            text="Папки",
+            reply_markup=await ik_folder_list(list(folders)),
         )
         await fn.set_general_message(state, msg)
 

@@ -126,7 +126,7 @@ async def ik_folder_list(
     builder = InlineKeyboardBuilder()
     builder.button(text="➕ Создать папку", callback_data="create_folder")
     builder.button(text="📦 Все аккаунты", callback_data="accounts_all")
-    builder.button(text="📂 Без папки", callback_data="accounts_no_folder")
+    # builder.button(text="📂 Без папки", callback_data="accounts_no_folder")
     for folder in folders:
         builder.button(
             text=f"📁 {folder.name}",
