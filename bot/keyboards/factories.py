@@ -33,5 +33,9 @@ class FolderAddFactory(CallbackData, prefix="fadd"):
     id: int
 
 
+class FolderDeleteFactory(CallbackData, prefix="fdel"):
+    id: int
+
+
 class AccountTextFactory(CallbackData, prefix="txt"):
     field: str

@@ -11,6 +11,7 @@ from bot.keyboards.factories import (
     BatchSizeFactory,
     CancelFactory,
     FolderAddFactory,
+    FolderDeleteFactory,
     FolderFactory,
     FolderMoveFactory,
     HistoryFactory,
@@ -32,12 +33,18 @@ async def ik_available_accounts(
     accounts: list[Account],
     back_to: str = "default",
     add_to_folder_id: int | None = None,
+    delete_folder_id: int | None = None,
 ) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     if add_to_folder_id is not None:
         builder.button(
             text="➕ Добавить аккаунт",
             callback_data=FolderAddFactory(id=add_to_folder_id),
+        )
+    if delete_folder_id is not None:
+        builder.button(
+            text="🗑 Удалить папку",
+            callback_data=FolderDeleteFactory(id=delete_folder_id),
         )
     for account in accounts:
         builder.button(

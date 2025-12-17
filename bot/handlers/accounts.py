@@ -7,7 +7,7 @@ from aiogram import F, Router
 from sqlalchemy import select
 
 from bot.db.models import Account, AccountFolder
-from bot.keyboards.factories import FolderFactory
+from bot.keyboards.factories import FolderDeleteFactory, FolderFactory
 from bot.keyboards.inline import (
     ik_available_accounts,
     ik_back,
@@ -62,12 +62,16 @@ async def _show_accounts(
     await state.update_data(accounts_back_to=actions_back_to)
 
     if not accounts:
+        delete_folder_id = (
+            folder_id if folder_id is not None and folder_id != 0 else None
+        )
         await query.message.edit_text(
             text=empty_text,
             reply_markup=await ik_available_accounts(
                 [],
                 back_to=LIST_BACK_TO,
                 add_to_folder_id=add_to_folder_id,
+                delete_folder_id=delete_folder_id,
             ),
         )
         return
@@ -201,6 +205,51 @@ async def show_folder_accounts_by_id(
         empty_text="В папке пока нет аккаунтов",
         actions_back_to=f"{FOLDER_BACK_PREFIX}{folder.id}",
         add_to_folder_id=folder.id,
+    )
+
+
+@router.callback_query(FolderDeleteFactory.filter())
+async def delete_folder(
+    query: CallbackQuery,
+    callback_data: FolderDeleteFactory,
+    session: AsyncSession,
+    state: FSMContext,
+    user: UserDB | None,
+) -> None:
+    if not await _ensure_admin(query, user):
+        return
+
+    folder = await session.scalar(
+        select(AccountFolder).where(
+            AccountFolder.id == callback_data.id,
+            AccountFolder.user_id == user.id,
+        )
+    )
+    if not folder:
+        await query.answer(text="Папка не найдена", show_alert=True)
+        return
+
+    has_accounts = await session.scalar(
+        select(Account.id).where(Account.folder_id == folder.id).limit(1)
+    )
+    if has_accounts:
+        await query.answer(text="В папке есть аккаунты", show_alert=True)
+        return
+
+    await session.delete(folder)
+    await session.commit()
+    await fn.state_clear(state)
+
+    folders = (
+        await session.scalars(
+            select(AccountFolder)
+            .where(AccountFolder.user_id == user.id)
+            .order_by(AccountFolder.name)
+        )
+    ).all()
+    await query.message.edit_text(
+        text="Папка удалена",
+        reply_markup=await ik_folder_list(list(folders)),
     )
 
 

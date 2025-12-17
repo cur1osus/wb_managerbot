@@ -11,6 +11,7 @@ from bot.keyboards.factories import BackFactory, FolderMoveFactory
 from bot.keyboards.inline import ik_action_with_account, ik_move_account_folder
 from bot.states import AccountState
 
+from ..accounts import _show_accounts
 from .common import account_back_to, account_from_state, alert_notifier
 
 router = Router()
@@ -58,9 +59,7 @@ async def move_account_folder_back(
 ) -> None:
     await query.message.edit_text(
         text="Действия с аккаунтом",
-        reply_markup=await ik_action_with_account(
-            back_to=await account_back_to(state)
-        ),
+        reply_markup=await ik_action_with_account(back_to=await account_back_to(state)),
     )
 
 
@@ -76,17 +75,38 @@ async def set_account_folder(
     if not account:
         return
 
+    old_folder = await account.awaitable_attrs.folder
+
+    async def _show_old_folder() -> None:
+        if old_folder:
+            await _show_accounts(
+                query,
+                session,
+                state,
+                user,
+                folder_id=old_folder.id,
+                title=old_folder.name,
+                empty_text="Аккаунтов еще нет",
+                actions_back_to=f"accounts_folder_{old_folder.id}",
+            )
+            return
+        await _show_accounts(
+            query,
+            session,
+            state,
+            user,
+            folder_id=0,
+            title="Аккаунты без папки",
+            empty_text="Аккаунтов без папки еще нет",
+            actions_back_to="accounts_no_folder",
+        )
+
     folder_id = callback_data.id
     if folder_id == 0:
         account.folder_id = None
         await session.commit()
         await query.answer(text="Аккаунт перемещен", show_alert=True)
-        await query.message.edit_text(
-            text="Действия с аккаунтом",
-            reply_markup=await ik_action_with_account(
-                back_to=await account_back_to(state)
-            ),
-        )
+        await _show_old_folder()
         return
 
     folder = await session.scalar(
@@ -102,9 +122,4 @@ async def set_account_folder(
     account.folder_id = folder.id
     await session.commit()
     await query.answer(text="Аккаунт перемещен", show_alert=True)
-    await query.message.edit_text(
-        text="Действия с аккаунтом",
-        reply_markup=await ik_action_with_account(
-            back_to=await account_back_to(state)
-        ),
-    )
+    await _show_old_folder()
