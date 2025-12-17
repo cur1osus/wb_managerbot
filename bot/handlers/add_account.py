@@ -10,7 +10,8 @@ from aiogram.types.reply_keyboard_remove import ReplyKeyboardRemove
 from sqlalchemy import select
 from telethon.tl.functions.upload import os
 
-from bot.db.models import Account, UserDB
+from bot.db.models import Account, AccountFolder, UserDB
+from bot.keyboards.factories import FolderAddFactory
 from bot.keyboards.inline import ik_admin_panel
 from bot.keyboards.reply import rk_cancel
 from bot.settings import se
@@ -51,8 +52,40 @@ async def add_new_account(
     if not user.is_admin:
         await query.message.answer("Вы не администратор")
         return
+    await state.update_data(folder_id=None)
     await query.message.delete()
     await query.message.answer("Введите api_id", reply_markup=await rk_cancel())
+    await state.set_state(UserAdminState.enter_api_id)
+
+
+@router.callback_query(FolderAddFactory.filter())
+async def add_account_to_folder(
+    query: CallbackQuery,
+    callback_data: FolderAddFactory,
+    state: FSMContext,
+    session: AsyncSession,
+    user: UserDB,
+) -> None:
+    if not user.is_admin:
+        await query.message.answer("Вы не администратор")
+        return
+
+    folder = await session.scalar(
+        select(AccountFolder).where(
+            AccountFolder.id == callback_data.id,
+            AccountFolder.user_id == user.id,
+        )
+    )
+    if not folder:
+        await query.answer(text="Папка не найдена", show_alert=True)
+        return
+
+    await state.update_data(folder_id=folder.id)
+    await query.message.delete()
+    await query.message.answer(
+        f"Добавление аккаунта в папку {folder.name}. Введите api_id",
+        reply_markup=await rk_cancel(),
+    )
     await state.set_state(UserAdminState.enter_api_id)
 
 
@@ -156,6 +189,16 @@ async def enter_code(
 
     save_account = data.get("save_account", True)
     if save_account:
+        folder_id = data.get("folder_id")
+        if folder_id:
+            folder = await session.scalar(
+                select(AccountFolder).where(
+                    AccountFolder.id == folder_id,
+                    AccountFolder.user_id == user.id,
+                )
+            )
+            if not folder:
+                folder_id = None
         account_exist = await session.scalar(
             select(Account).where(Account.api_hash == api_hash)
         )
@@ -174,6 +217,7 @@ async def enter_code(
             path_session=path_session,
             is_connected=True,
             user_id=user.id,
+            folder_id=folder_id,
         )
         session.add(c)
         await session.commit()

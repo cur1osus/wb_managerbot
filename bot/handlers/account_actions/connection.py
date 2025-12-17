@@ -13,7 +13,7 @@ from bot.keyboards.inline import (
 from bot.states import AccountState, UserAdminState
 from bot.utils import fn
 
-from .common import account_from_state, alert_notifier
+from .common import account_back_to, account_from_state, alert_notifier
 
 router = Router()
 logger = logging.getLogger(__name__)
@@ -53,7 +53,9 @@ async def connect_account(
         await session.commit()
         await query.message.edit_text(
             "Аккаунт успешно подключен!",
-            reply_markup=await ik_action_with_account(),
+            reply_markup=await ik_action_with_account(
+                back_to=await account_back_to(state)
+            ),
         )
         return
 

@@ -8,7 +8,7 @@ from aiogram import F, Router
 from bot.keyboards.inline import ik_action_with_account
 from bot.states import AccountState
 
-from .common import account_from_state, alert_notifier
+from .common import account_back_to, account_from_state, alert_notifier
 
 router = Router()
 logger = logging.getLogger(__name__)
@@ -37,7 +37,7 @@ async def start_account(
 
     await query.message.edit_text(
         f"Бот {account.name} [{account.phone}] запущен",
-        reply_markup=await ik_action_with_account(),
+        reply_markup=await ik_action_with_account(back_to=await account_back_to(state)),
     )
 
 
@@ -57,5 +57,5 @@ async def stop_account(
 
     await query.message.edit_text(
         f"Бот {account.name} [{account.phone}] остановлен",
-        reply_markup=await ik_action_with_account(),
+        reply_markup=await ik_action_with_account(back_to=await account_back_to(state)),
     )

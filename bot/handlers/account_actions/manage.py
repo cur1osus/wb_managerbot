@@ -11,6 +11,7 @@ from bot.keyboards.factories import AccountFactory
 from bot.keyboards.inline import ik_action_with_account, ik_connect_account
 from bot.states import AccountState
 
+from .common import account_back_to
 router = Router()
 logger = logging.getLogger(__name__)
 
@@ -45,11 +46,12 @@ async def manage_account(
         await query.answer(text="Аккаунт не найден", show_alert=True)
         return
 
+    back_to = await account_back_to(state)
     markup = (
-        await ik_action_with_account()
+        await ik_action_with_account(back_to=back_to)
         if account.is_connected
-        else await ik_connect_account()
+        else await ik_connect_account(back_to=back_to)
     )
     await query.message.edit_text("Выберите действие", reply_markup=markup)
     await state.set_state(AccountState.actions)
-    await state.update_data(account_id=account_id)
+    await state.update_data(account_id=account_id, accounts_back_to=back_to)

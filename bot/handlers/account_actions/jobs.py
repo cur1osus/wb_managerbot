@@ -9,7 +9,7 @@ from bot.db.models import Job
 from bot.keyboards.inline import ik_action_with_account
 from bot.states import AccountState
 
-from .common import account_from_state, alert_notifier
+from .common import account_back_to, account_from_state, alert_notifier
 
 router = Router()
 logger = logging.getLogger(__name__)
@@ -41,5 +41,5 @@ async def create_job_get_names(
     await query.answer(text="Задача создана", show_alert=True)
     await query.message.edit_text(
         text="Действия с аккаунтом",
-        reply_markup=await ik_action_with_account(),
+        reply_markup=await ik_action_with_account(back_to=await account_back_to(state)),
     )

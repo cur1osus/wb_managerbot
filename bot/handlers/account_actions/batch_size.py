@@ -9,7 +9,7 @@ from bot.keyboards.factories import BatchSizeFactory
 from bot.keyboards.inline import ik_action_with_account, ik_choose_batch_size
 from bot.states import AccountState
 
-from .common import account_from_state, alert_notifier
+from .common import account_back_to, account_from_state, alert_notifier
 
 router = Router()
 logger = logging.getLogger(__name__)
@@ -64,7 +64,7 @@ async def set_batch_size(
 
     await query.message.edit_text(
         text=f"Пропускная способность установлена на {new_size}",
-        reply_markup=await ik_action_with_account(),
+        reply_markup=await ik_action_with_account(back_to=await account_back_to(state)),
     )
 
 
@@ -81,5 +81,5 @@ async def batch_size_back(
 
     await query.message.edit_text(
         text="Действия с аккаунтом",
-        reply_markup=await ik_action_with_account(),
+        reply_markup=await ik_action_with_account(back_to=await account_back_to(state)),
     )

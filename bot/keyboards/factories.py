@@ -19,3 +19,19 @@ class HistoryFactory(CallbackData, prefix="hst"):
 
 class BatchSizeFactory(CallbackData, prefix="bs"):
     value: int
+
+
+class FolderFactory(CallbackData, prefix="fld"):
+    id: int
+
+
+class FolderMoveFactory(CallbackData, prefix="fmd"):
+    id: int
+
+
+class FolderAddFactory(CallbackData, prefix="fadd"):
+    id: int
+
+
+class AccountTextFactory(CallbackData, prefix="txt"):
+    field: str

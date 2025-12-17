@@ -42,3 +42,12 @@ async def account_from_state(
         return None
 
     return account
+
+
+async def account_back_to(state: FSMContext) -> str:
+    data = await state.get_data()
+    back_to = data.get("accounts_back_to", "accounts")
+    if isinstance(back_to, str) and back_to.startswith("accounts_folder:"):
+        back_to = back_to.replace("accounts_folder:", "accounts_folder_", 1)
+        await state.update_data(accounts_back_to=back_to)
+    return back_to

@@ -12,3 +12,14 @@ class UserAdminState(StatesGroup):
 class AccountState(StatesGroup):
     actions = State()
     load_nicks = State()
+
+
+class FolderState(StatesGroup):
+    enter_name = State()
+
+
+class AccountTextsState(StatesGroup):
+    choose_category = State()
+    enter_text = State()
+    enter_item_name = State()
+    delete_text = State()

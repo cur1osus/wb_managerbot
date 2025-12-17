@@ -14,7 +14,7 @@ from bot.keyboards.inline import ik_action_with_account, ik_cancel_action
 from bot.states import AccountState
 from bot.utils import fn
 
-from .common import account_from_state, alert_notifier
+from .common import account_back_to, account_from_state, alert_notifier
 
 router = Router()
 logger = logging.getLogger(__name__)
@@ -56,7 +56,7 @@ async def cancel_load_nicks(
 ) -> None:
     await query.message.edit_text(
         text="Загрузка никнеймов отменена",
-        reply_markup=await ik_action_with_account(),
+        reply_markup=await ik_action_with_account(back_to=await account_back_to(state)),
     )
     await state.set_state(AccountState.actions)
 
@@ -102,7 +102,7 @@ async def catch_load_nicks(
     await state.set_state(AccountState.actions)
     await message.answer(
         text="Действия с аккаунтом",
-        reply_markup=await ik_action_with_account(),
+        reply_markup=await ik_action_with_account(back_to=await account_back_to(state)),
     )
 
 
