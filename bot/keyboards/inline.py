@@ -132,7 +132,7 @@ async def ik_folder_list(
             text=f"📁 {folder.name}",
             callback_data=FolderFactory(id=folder.id),
         )
-    builder.button(text=BACK_BUTTON_TEXT, callback_data=BackFactory(to="default"))
+    # builder.button(text=BACK_BUTTON_TEXT, callback_data=BackFactory(to="default"))
     builder.adjust(1)
     return builder.as_markup()
 

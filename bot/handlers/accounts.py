@@ -105,7 +105,7 @@ async def show_folders(
         await session.scalars(
             select(AccountFolder)
             .where(AccountFolder.user_id == user.id)
-            .order_by(AccountFolder.name)
+            .order_by(AccountFolder.id)
         )
     ).all()
     await query.message.edit_text(
@@ -244,7 +244,7 @@ async def delete_folder(
         await session.scalars(
             select(AccountFolder)
             .where(AccountFolder.user_id == user.id)
-            .order_by(AccountFolder.name)
+            .order_by(AccountFolder.id)
         )
     ).all()
     await query.message.edit_text(
@@ -305,7 +305,7 @@ async def create_folder(
         await session.scalars(
             select(AccountFolder)
             .where(AccountFolder.user_id == user.id)
-            .order_by(AccountFolder.name)
+            .order_by(AccountFolder.id)
         )
     ).all()
     await message.answer(

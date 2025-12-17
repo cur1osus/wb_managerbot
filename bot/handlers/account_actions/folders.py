@@ -40,7 +40,7 @@ async def move_account_folder(
         await session.scalars(
             select(AccountFolder)
             .where(AccountFolder.user_id == user.id)
-            .order_by(AccountFolder.name)
+            .order_by(AccountFolder.id)
         )
     ).all()
 
