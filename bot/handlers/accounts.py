@@ -52,7 +52,9 @@ async def _show_accounts(
     actions_back_to: str,
     add_to_folder_id: int | None = None,
 ) -> None:
-    stmt = select(Account).where(Account.user_id == user.id)
+    stmt = (
+        select(Account).where(Account.user_id == user.id).order_by(Account.id)
+    )
     if folder_id == 0:
         stmt = stmt.where(Account.folder_id.is_(None))
     elif folder_id is not None:
