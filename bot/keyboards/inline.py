@@ -68,24 +68,24 @@ async def ik_action_with_account(back_to: str = "accounts") -> InlineKeyboardMar
     builder.button(text="⛓️‍💥 Отключить", callback_data="disconnect_account")
     builder.button(text="🟢 Старт", callback_data="start_account")
     builder.button(text="🔴 Стоп", callback_data="stop_account")
-    builder.button(text="📁 Переместить в папку", callback_data="move_account_folder")
-    builder.button(text="📝 Тексты", callback_data="edit_account_texts")
     builder.button(
-        text="⚙️ Пропускная способность",
+        text="⚙️ Пропускная",
         callback_data="change_batch_size",
     )
-    builder.button(text="🚮 Сбросить ники", callback_data="reset_nicks_account")
     builder.button(text="🌀 Загрузить ники", callback_data="load_nicks_account")
+    builder.button(text="🚮 Сбросить ники", callback_data="reset_nicks_account")
+    builder.button(text="📁 Переместить", callback_data="move_account_folder")
+    builder.button(text="📝 Тексты", callback_data="edit_account_texts")
+    builder.button(
+        text="📜 История",
+        callback_data=HistoryFactory(page=1),
+    )
     builder.button(
         text="📥 Получить имена/юзернеймы",
         callback_data="create_job_get_names",
     )
-    builder.button(
-        text="📜 История отправок",
-        callback_data=HistoryFactory(page=1),
-    )
     builder.button(text=BACK_BUTTON_TEXT, callback_data=BackFactory(to=back_to))
-    builder.adjust(1, 2, 1, 1, 1, 1, 1, 1, 1, 1)
+    builder.adjust(1, 2, 2, 2, 2, 1)
     return builder.as_markup()
 
 
