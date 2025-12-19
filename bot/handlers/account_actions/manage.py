@@ -12,6 +12,8 @@ from bot.keyboards.inline import ik_action_with_account, ik_connect_account
 from bot.states import AccountState
 
 from .common import account_back_to
+from .texts import ensure_texts
+
 router = Router()
 logger = logging.getLogger(__name__)
 
@@ -45,6 +47,10 @@ async def manage_account(
     if not account:
         await query.answer(text="Аккаунт не найден", show_alert=True)
         return
+
+    _, created_texts = await ensure_texts(session, account.id)
+    if created_texts:
+        await session.commit()
 
     back_to = await account_back_to(state)
     markup = (

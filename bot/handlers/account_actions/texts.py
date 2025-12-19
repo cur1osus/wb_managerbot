@@ -181,7 +181,7 @@ async def _load_texts(session: AsyncSession, account_id: int) -> AccountTexts | 
     )
 
 
-async def _ensure_texts(
+async def ensure_texts(
     session: AsyncSession, account_id: int
 ) -> tuple[AccountTexts, bool]:
     texts = await _load_texts(session, account_id)
@@ -312,7 +312,7 @@ async def edit_account_texts(
     if not account:
         return
 
-    _, created = await _ensure_texts(session, account.id)
+    _, created = await ensure_texts(session, account.id)
     if created:
         await session.commit()
     await query.message.edit_text(
@@ -335,7 +335,7 @@ async def test_account_texts(
     if not account:
         return
 
-    _, created = await _ensure_texts(session, account.id)
+    _, created = await ensure_texts(session, account.id)
     if created:
         await session.commit()
 
@@ -797,7 +797,7 @@ async def save_texts(
         await message.answer("Неизвестная категория")
         return
 
-    texts, _ = await _ensure_texts(session, account.id)
+    texts, _ = await ensure_texts(session, account.id)
 
     session.add_all([cfg.model(account_texts_id=texts.id, text=line) for line in lines])
     await session.commit()

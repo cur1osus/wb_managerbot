@@ -6,6 +6,11 @@ from typing import TYPE_CHECKING
 
 from aiogram import F, Router
 
+from bot.handlers.accounts import (
+    show_all_accounts,
+    show_folder_accounts_by_id,
+    show_no_folder_accounts,
+)
 from bot.keyboards.inline import (
     ik_action_with_account,
     ik_admin_panel,
@@ -24,6 +29,33 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
     from bot.db.models import UserDB
+
+
+async def _return_to_accounts_list(
+    back_to: str,
+    query: CallbackQuery,
+    session: AsyncSession,
+    state: FSMContext,
+    user: UserDB,
+) -> bool:
+    if back_to == "accounts":
+        await show_all_accounts(query, session, state, user)
+        return True
+    if back_to == "accounts_no_folder":
+        await show_no_folder_accounts(query, session, state, user)
+        return True
+    if back_to.startswith("accounts_folder_"):
+        folder_id_str = back_to.replace("accounts_folder_", "", 1)
+        if folder_id_str.isdigit():
+            await show_folder_accounts_by_id(
+                query,
+                session,
+                state,
+                user,
+                folder_id=int(folder_id_str),
+            )
+            return True
+    return False
 
 
 @router.callback_query(AccountState.actions, F.data == "connect_account")
@@ -96,12 +128,18 @@ async def disconnected_account(
     if not account:
         return
 
+    back_to = await account_back_to(state)
     account.is_connected = False
     await session.commit()
 
     await fn.Manager.stop_bot(phone=account.phone)
 
     await fn.state_clear(state)
+
+    if await _return_to_accounts_list(back_to, query, session, state, user):
+        await query.answer(text="Аккаунт отключен")
+        return
+
     await query.message.edit_text(
         "Аккаунт отключен", reply_markup=await ik_admin_panel()
     )

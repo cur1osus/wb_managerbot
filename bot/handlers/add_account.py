@@ -11,6 +11,7 @@ from sqlalchemy import select
 from telethon.tl.functions.upload import os
 
 from bot.db.models import Account, AccountFolder, UserDB
+from bot.handlers.account_actions.texts import ensure_texts
 from bot.keyboards.factories import FolderAddFactory
 from bot.keyboards.inline import ik_admin_panel
 from bot.keyboards.reply import rk_cancel
@@ -221,6 +222,10 @@ async def enter_code(
         )
         session.add(c)
         await session.commit()
+
+        _, created_texts = await ensure_texts(session, c.id)
+        if created_texts:
+            await session.commit()
 
     _task = asyncio.create_task(
         fn.Manager.start_bot(phone, path_session, api_id, api_hash)
