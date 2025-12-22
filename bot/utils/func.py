@@ -4,6 +4,7 @@ import asyncio
 import dataclasses
 import logging
 import os
+import re
 import signal
 import subprocess
 from pathlib import Path
@@ -29,6 +30,7 @@ logger = logging.getLogger(__name__)
 PID_SUFFIX: Final[str] = ".pid"
 SESSION_SUFFIX: Final[str] = ".session"
 PID_FILE_WAIT_SECONDS: Final[float] = 1.0
+USERNAME_PATTERN: Final = re.compile(r"^[A-Za-z0-9_]{5,32}$")
 
 
 @dataclasses.dataclass
@@ -61,19 +63,31 @@ class Function:
     max_length_message: Final[int] = 4000
 
     @staticmethod
+    def _validate_username(raw_username: str) -> str | None:
+        username = raw_username.strip().lstrip("@")
+        if not username:
+            return None
+        if not USERNAME_PATTERN.fullmatch(username):
+            return None
+        return username
+
+    @staticmethod
     async def parse_users_from_text(text: str) -> tuple[list[UserData], list[str]]:
         lines = text.splitlines()
         users = []
         line_not_handled = []
         for line in lines:
-            if not line:
+            if not line or not line.strip():
                 continue
-            r = line.split("-")
+            r = line.split("-", maxsplit=1)
             if not r or len(r) < 2:
                 line_not_handled.append(line)
                 continue
-            username = r[1].strip()
             item_name = r[0].strip()
+            username = Function._validate_username(r[1])
+            if not username:
+                line_not_handled.append(line)
+                continue
             users.append(UserData(username, item_name))
         return users, line_not_handled
 
