@@ -212,3 +212,11 @@ async def ik_account_texts_category_actions() -> InlineKeyboardMarkup:
     )
     builder.adjust(1)
     return builder.as_markup()
+
+
+async def ik_confirm_delete_sessions() -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    builder.button(text="✅ Да, удалить", callback_data="confirm_delete_sessions")
+    builder.button(text="❌ Отмена", callback_data="cancel_delete_sessions")
+    builder.adjust(1)
+    return builder.as_markup()

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from typing import TYPE_CHECKING
 
 from aiogram import F, Router
@@ -52,9 +53,7 @@ async def _show_accounts(
     actions_back_to: str,
     add_to_folder_id: int | None = None,
 ) -> None:
-    stmt = (
-        select(Account).where(Account.user_id == user.id).order_by(Account.id)
-    )
+    stmt = select(Account).where(Account.user_id == user.id).order_by(Account.id)
     if folder_id == 0:
         stmt = stmt.where(Account.folder_id.is_(None))
     elif folder_id is not None:
@@ -63,12 +62,35 @@ async def _show_accounts(
     accounts = (await session.scalars(stmt)).all()
     await state.update_data(accounts_back_to=actions_back_to)
 
+    # Проверяем наличие файлов сессий и удаляем аккаунты без сессий
+    valid_accounts = []
+    deleted_accounts = []
+    for account in accounts:
+        if os.path.exists(account.path_session):
+            valid_accounts.append(account)
+        else:
+            deleted_accounts.append(account.phone)
+            await session.delete(account)
+
+    if deleted_accounts:
+        await session.commit()
+        logger.info(f"Удалены аккаунты без сессий: {', '.join(deleted_accounts)}")
+
+    accounts = valid_accounts
+
+    # Формируем сообщение об удаленных аккаунтах
+    deleted_message = ""
+    if deleted_accounts:
+        deleted_message = (
+            f"\n\n🗑 Удалены аккаунты без сессий: {', '.join(deleted_accounts)}"
+        )
+
     if not accounts:
         delete_folder_id = (
             folder_id if folder_id is not None and folder_id != 0 else None
         )
         await query.message.edit_text(
-            text=empty_text,
+            text=empty_text + deleted_message,
             reply_markup=await ik_available_accounts(
                 [],
                 back_to=LIST_BACK_TO,
@@ -83,7 +105,7 @@ async def _show_accounts(
     await session.commit()
 
     await query.message.edit_text(
-        title,
+        title + deleted_message,
         reply_markup=await ik_available_accounts(
             list(accounts),
             back_to=LIST_BACK_TO,
