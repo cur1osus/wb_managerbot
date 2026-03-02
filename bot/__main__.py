@@ -85,6 +85,7 @@ async def set_default_commands(bot: Bot) -> None:
     await bot.set_my_commands(
         [
             BotCommand(command="start", description="start"),
+            BotCommand(command="delete_sessions", description="Удалить папку сессий"),
         ]
     )
 
